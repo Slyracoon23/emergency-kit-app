@@ -3,6 +3,7 @@ import streamlit as st
 from st_aggrid import GridOptionsBuilder, AgGrid, JsCode
 from st_aggrid.shared import ColumnsAutoSizeMode
 
+################### MAIN AREA: PRODUCT LIST #####################
 
 products = {
     "No.": [1, 2, 3],
@@ -17,71 +18,26 @@ products = {
 }
 
 df = pd.DataFrame(products)
-
 ob = GridOptionsBuilder.from_dataframe(df)
-
-# 1. Add an image next to the value under the Name column.
-#    Also add a link on the label.
-# image_cr = JsCode("""
-#     function(params) {
-#         console.log(params);
-#         var element = document.createElement("span");
-
-#         var imageElement = document.createElement("img");
-#         var anchorElement = document.createElement("a");
-
-#         // Update the image element. Use the value from Details column.
-#         imageElement.src = params.data.Details;
-#         imageElement.width="80";
-#         imageElement.height="80";
-#         element.appendChild(imageElement);
-
-#         // Add a link to the Name value. The link is from the Details column.
-#         anchorElement.href = params.data.Details;
-#         anchorElement.target = "_blank";
-#         anchorElement.innerHTML = params.value;
-#         element.appendChild(anchorElement);
-
-#         return element;
-#     }""")
 
 image_cr = JsCode("""
     function(params) {
-        console.log(params);
-                  
         var element = document.createElement("span");
-
         var imageElement = document.createElement("img");
         var anchorElement = document.createElement("a");
-
-        // Update the image element. Use the value from Details column.
         imageElement.src = params.data.Details;
         imageElement.width="80";
         imageElement.height="80";
         element.appendChild(imageElement);
-
-        // Add a link to the Name value. The link is from the Details column.
         anchorElement.href = params.data.Details;
         anchorElement.target = "_blank";
         anchorElement.innerHTML = params.value;
         element.appendChild(anchorElement);
-        
-        console.log(element);
-
         return element;
     }""")
 
 ob.configure_column('Name', cellRenderer=image_cr)
 
-# 2. Configure the column Details. Add a link to inner value.
-# image_url = JsCode("""
-#     function(params) {
-#         return `<a href=${params.value} target="_blank">${params.value}</a>`
-#     }""")
-# ob.configure_column("Details", cellRenderer=image_url)
-
-# 2.1. Style the cell, if stocks is below 60, increase font-size
-#      and color it red - as a warning to supply department.
 low_supply = JsCode("""
     function(params) {
         if (params.value < 60) {
@@ -93,21 +49,13 @@ low_supply = JsCode("""
     }""")
 ob.configure_column("Stocks", cellStyle=low_supply)
 
-# 3. Update selection.
 ob.configure_selection(selection_mode="multiple", use_checkbox=True)
-
-# 4. Update row height, to make the image look clearer.
 ob.configure_grid_options(rowHeight=100)
-
-# 5. Hide the Details column. The product name has a link already.
 ob.configure_column("Details", hide=True)
-
-# 6. Build the options.
 grid_options = ob.build()
 
 st.markdown('#### Streamlit-AgGrid')
 
-# 7. Add custom css to center the values, as we adjusted the row height in step 4.
 grid_return = AgGrid(
     df,
     grid_options,
@@ -122,11 +70,9 @@ grid_return = AgGrid(
 ) 
 
 selected_rows = grid_return["selected_rows"]
-
 if len(selected_rows):
     st.markdown('#### Selected')
     dfs = pd.DataFrame(selected_rows)
-
     dfsnet = dfs.drop(columns=['_selectedRowNodeInfo', 'Details'])
     AgGrid(
         dfsnet,
@@ -135,3 +81,43 @@ if len(selected_rows):
         reload_data=True,
         key='product_selected'
     )   
+
+################### SIDE BAR #####################
+
+# Function to handle form submission
+def submit():
+    emergency_data = {
+        "Item": ["Water", "Food", "Medication", "Flashlight", "Battery"],
+        "Quantity": [3 * st.session_state.num_people, 5 * st.session_state.num_people, 2, 1, 4]
+    }
+    st.session_state['output'] = pd.DataFrame(emergency_data)
+
+st.sidebar.title('Emergency Advisor')
+st.sidebar.subheader('Let us prepare your emergency inventory list!')
+
+if 'output' not in st.session_state:
+    st.session_state['output'] = '--'
+
+with st.sidebar.form(key='emergency_form'):
+    c1, c2, c3 = st.sidebar.columns(3)
+    with c1:
+        st.subheader('Basic Details')
+        st.text_input('Location', value='New York', key='location')
+        st.selectbox('Type of Emergency', ('Wildfire', 'Flood', 'Earthquake', 'Power Outage', 'Tornado', 'Other'), key='type_of_emergency')
+        st.number_input('Number of People', value=1, min_value=1, key='num_people')
+    with c2:
+        st.subheader('Specific Needs')
+        st.radio('Pets', ['Yes', 'No'], key='pets')
+        st.text_area('Special Needs (e.g., medications, disabilities)', height=100, key='special_needs')
+    with c3:
+        st.subheader('Duration & Notes')
+        st.selectbox('Anticipated Duration', ('24 hours', '3 days', '1 week', 'More than a week'), key='duration')
+        st.text_area('Additional Notes', height=100, value='I have a toddler.', key='additional_notes')
+    st.form_submit_button('Submit', on_click=submit)
+
+# Main area
+st.subheader('Emergency Inventory List')
+if isinstance(st.session_state.output, pd.DataFrame):
+    AgGrid(st.session_state.output)
+else:
+    st.write(st.session_state.output)
