@@ -39,16 +39,17 @@ with st.sidebar.form(key='emergency_form'):
 if st.session_state.show_product_list:
     ################### MAIN AREA: PRODUCT LIST #####################
     products = {
-        "No.": [1, 2, 3],
-        "Name": [' Chair', ' Cabinet', ' Table'],
-        "Price": [4, 12, 10],
-        "Stocks": [100, 50, 60],
-        "Details": [
-            "https://i.imgur.com/fH2LHvo.png",
-            "https://i.imgur.com/bvHZX5j.png",
-            "https://i.imgur.com/D7xDwT9.png"
-        ]
-    }
+            "No.": [1, 2, 3],
+            "Name": ['Backpack', 'Water Bottle', 'Firestarter'],
+            "Price": [25, 5, 10],
+            "Stocks": [150, 30, 10],
+            "Details": [
+                "https://nomad.nl/nl/wp-content/uploads/sites/2/2023/02/BBBAT7K3GB70737_1.jpg",
+                "https://5.imimg.com/data5/HZ/NO/IH/SELLER-23767712/plastic-water-bottle-500x500.png",
+                "https://m.media-amazon.com/images/I/71fb7xILoyL._AC_UF1000,1000_QL80_.jpg"
+            ]
+        }
+
 
     df = pd.DataFrame(products)
     ob = GridOptionsBuilder.from_dataframe(df)
