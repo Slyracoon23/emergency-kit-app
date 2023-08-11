@@ -114,3 +114,11 @@ if st.session_state.show_product_list:
             reload_data=True,
             key='product_selected'
         )
+        
+        # Create columns for button placement
+        col1, col2 = st.columns([4, 1])  # adjust the ratio to position the button as desired
+
+        # Place the checkout button in the second column
+        with col2:
+            if st.button("Go to Checkout"):
+                st.write("Proceeding to Checkout...")  # You can define any action or message here
