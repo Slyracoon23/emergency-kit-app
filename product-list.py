@@ -3,6 +3,9 @@ import streamlit as st
 from st_aggrid import GridOptionsBuilder, AgGrid, JsCode
 from st_aggrid.shared import ColumnsAutoSizeMode
 
+import replicate
+
+
 ################### SIDE BAR #####################
 
 # Function to handle form submission
@@ -121,5 +124,19 @@ if st.session_state.show_product_list:
 
         # Place the checkout button in the second column
         with col2:
-            if st.button("Go to Checkout"):
-                st.write("Proceeding to Checkout...")  # You can define any action or message here
+            if st.button("Generate Image"):
+                st.session_state.button_pressed = True
+
+    # Only run replicate and fetch the image when the button is pressed, and display it outside of the columns
+    if st.session_state.get("button_pressed"):
+        with st.spinner("Generating Image..."):  # Display loading spinner
+            output = replicate.run(
+                "stability-ai/sdxl:a00d0b7dcbb9c3fbb34ba87d2d5b46c56969c84a628bf778a7fdaec30b1b99c5",
+                input={"prompt": "Bushcraft Survival Gear on Instagram: 'Preparation 🌲🌲 @Bushcraftshelter 📷@Yabandabiri Equipment for Living in Nature, Survival Kit, Bushcraft Camping. Kit dump, equipment setup display,          "}
+            )
+
+        print(output)
+        image_url = output[0]
+        if image_url:
+            print(image_url)
+            st.image(image_url, caption="Surviaval Kit" , use_column_width=True)
